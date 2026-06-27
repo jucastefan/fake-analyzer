@@ -1,0 +1,83 @@
+<main class="app-shell">
+  <section class="card">
+    <div class="hero">
+      <p class="eyebrow">AI-powered content checker</p>
+      <h1>Fake content analyzer</h1>
+      <p class="subtitle">
+        Paste text or a URL, then let AI estimate how much of the content looks fake or misleading.
+      </p>
+    </div>
+
+    <form class="analysis-form">
+      <label for="content">Text or URL</label>
+      <textarea
+        id="content"
+        rows="10"
+        [(ngModel)]="content"
+        name="content"
+        placeholder="Paste an article, claim, or a public URL here..."
+        [disabled]="isLoading"
+      ></textarea>
+
+      <div class="actions">
+        <button type="submit" (click)="analyze()" [disabled]="isLoading">
+          @if (isLoading) {
+            <span class="spinner" aria-hidden="true"></span>
+          }
+          <span>{{ isLoading ? 'Analyzing…' : 'Analyze' }}</span>
+        </button>
+      </div>
+    </form>
+
+    @if (errorMessage) {
+      <div class="message error">{{ errorMessage }}</div>
+    }
+
+    @if (result) {
+      <div class="result-card">
+        <div class="score-row">
+          <div>
+            <p class="label">Likely fake</p>
+            <h2>{{ result.fakePercentage }}%</h2>
+          </div>
+          <div>
+            <p class="label">Likely real</p>
+            <h2>{{ result.realPercentage }}%</h2>
+          </div>
+        </div>
+        <div class="summary-box">
+          <h3>Summary</h3>
+          <p>{{ result.summary }}</p>
+          <button type="button" class="secondary-button" (click)="showSummaryModal = true">
+            Open summary
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (showSummaryModal && result) {
+      <div class="modal-backdrop" role="presentation" (click)="closeSummaryModal()">
+        <div
+          class="modal-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="summary-title"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="modal-header">
+            <h3 id="summary-title">Analysis summary</h3>
+            <button
+              type="button"
+              class="icon-button"
+              (click)="closeSummaryModal()"
+              aria-label="Close summary"
+            >
+              ×
+            </button>
+          </div>
+          <p>{{ result.summary }}</p>
+        </div>
+      </div>
+    }
+  </section>
+</main>
