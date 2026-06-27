@@ -82,7 +82,7 @@ app.use((err, _req, res, _next) => {
 });
 
 const server = app.listen(port, () => {
-  console.log(`Analyzer server running on http://fakeanalyzer:${port}`);
+  console.log(`Analyzer server running on http://localhost:${port}`);
 });
 
 // Handle unhandled promise rejections

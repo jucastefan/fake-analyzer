@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: fake-analyzer
+    env: node
+    plan: free
+    branch: main
+    buildCommand: 'NPM_CONFIG_PRODUCTION=false npm ci && npm run build'
+    startCommand: 'npm run server'
+    envVars: []
