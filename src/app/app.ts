@@ -60,4 +60,9 @@ export class App {
     this.showSummaryModal = false;
     this.cdr.detectChanges();
   }
+
+  openSummaryModal(): void {
+    this.showSummaryModal = true;
+    this.cdr.detectChanges();
+  }
 }
