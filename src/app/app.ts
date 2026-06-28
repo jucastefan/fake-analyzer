@@ -46,7 +46,7 @@ export class App {
         throw new Error(data.error || 'Analysis failed.');
       }
 
-      this.result = this.analyzer.parseGeminiResponse(data.analysis);
+      this.result = this.analyzer.parseAnalysisResponse(data.analysis);
       this.showSummaryModal = !!this.result;
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'Unexpected error.';
@@ -58,5 +58,6 @@ export class App {
 
   closeSummaryModal(): void {
     this.showSummaryModal = false;
+    this.cdr.detectChanges();
   }
 }

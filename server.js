@@ -15,6 +15,9 @@ app.use(express.json());
 app.use(express.static(staticRoot));
 
 app.post('/api/analyze', async (req, res) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
   try {
     const { content } = req.body || {};
 
@@ -22,46 +25,59 @@ app.post('/api/analyze', async (req, res) => {
       return res.status(400).json({ error: 'Please provide some content to analyze.' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
       return res.status(500).json({
-        error: 'GEMINI_API_KEY is not set. Add it to your environment before running the app.',
+        error: 'GROQ_API_KEY is not set. Add it to your environment before running the app.',
       });
     }
 
+    const model = process.env.GROQ_MODEL || 'llama-3.1-70b-versatile';
+
     const prompt = `You are a careful fact-checking assistant. Analyze the following content and estimate how much of it appears fake, misleading, or unverified. Respond with strict JSON in this exact shape: {"fakePercentage": number, "realPercentage": number, "summary": string}\n\nContent:\n${content}`;
 
-    console.log('Sending request to Gemini API...');
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-
-    const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' +
-        apiKey,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-        // signal: controller.signal,
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
       },
-    );
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a careful fact-checking assistant. Return only valid JSON with fakePercentage, realPercentage, and summary fields.',
+          },
+          { role: 'user', content: prompt },
+        ],
+        response_format: { type: 'json_object' },
+      }),
+      signal: controller.signal,
+    });
 
-    clearTimeout(timeout);
-    console.log('Gemini API response status:', response.status);
+    console.log('Groq API response status:', response.status);
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Gemini API error:', data);
+      console.error('Groq API error:', data);
+      const errorCode = data?.error?.code;
+      if (response.status === 429 || errorCode === 'insufficient_quota') {
+        return res.status(429).json({
+          error:
+            'Your Groq API key has no available quota. Check your Groq billing or quota settings, then try again.',
+        });
+      }
+
       return res
         .status(response.status)
-        .json({ error: data?.error?.message || 'Gemini request failed.' });
+        .json({ error: data?.error?.message || 'Groq request failed.' });
     }
 
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    console.log('Gemini response received:', text.substring(0, 100));
+    const text = data?.choices?.[0]?.message?.content || '';
+    console.log('Groq response received:', text.substring(0, 100));
 
     res.json({ analysis: text });
   } catch (error) {
@@ -71,6 +87,8 @@ app.post('/api/analyze', async (req, res) => {
         .status(500)
         .json({ error: error instanceof Error ? error.message : 'Unknown server error.' });
     }
+  } finally {
+    clearTimeout(timeout);
   }
 });
 

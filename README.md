@@ -69,7 +69,8 @@ Follow these steps to deploy this app to Render:
   - **Start Command:** `npm run server`
   - **Environment:** `Node`
 - Add the following environment variable in Render (mark as secret):
-  - `GEMINI_API_KEY` — your Gemini API key.
+  - `GROQ_API_KEY` — your Groq API key.
+- Optional: set `GROQ_MODEL` if you want to override the default model (`llama-3.1-70b-versatile`).
 - Deploy. The server listens on the port provided by Render via `process.env.PORT`.
 
 Alternatively you can use the included `render.yaml` for Infrastructure-as-Code. Do NOT commit your API keys — set them in the Render dashboard.

@@ -10,7 +10,7 @@ export class AnalyzerService {
 Content:\n${content}`;
   }
 
-  parseGeminiResponse(raw: string): AnalysisResult {
+  parseAnalysisResponse(raw: string): AnalysisResult {
     const cleaned = raw.trim();
     const fenced = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
     const candidateSource = fenced?.[1] ?? cleaned;
@@ -21,7 +21,7 @@ Content:\n${content}`;
       return {
         fakePercentage: 0,
         realPercentage: 0,
-        summary: 'The response could not be parsed. Please try again.'
+        summary: 'The response could not be parsed. Please try again.',
       };
     }
 
@@ -31,7 +31,7 @@ Content:\n${content}`;
     return {
       fakePercentage: Number(parsed.fakePercentage ?? 0),
       realPercentage: Number(parsed.realPercentage ?? 0),
-      summary: String(parsed.summary ?? 'No summary returned.')
+      summary: String(parsed.summary ?? 'No summary returned.'),
     };
   }
 }
